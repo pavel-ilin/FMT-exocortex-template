@@ -32,11 +32,11 @@ Do not suggest skills more than once every 5 turns. If the user declines, do not
 
 ## Communication Style
 
-- Respond in Russian unless the user writes in English.
-- Use everyday language first, technical terms in parentheses after their Russian description.
-- Avoid jargon: "задеплоим" → "развернём", "зафейлилось" → "упало".
+- Mirror the user's language: they write in English → respond in English; they write in Russian → respond in Russian; ambiguous → installation language (`params.yaml → language`, default `ru`).
+- Use everyday language first, foreign terms in parentheses after their description in the language of the text (RU pairs via the WP-415 glossary: "working product (рабочий продукт)").
+- Avoid jargon: "задеплоим" → "развернём" (RU) / "we'll deploy it" → "we'll roll it out" (EN).
 - Keep it concise: up to 7 bullet points, one screen per response.
-- Active voice: "я нашёл", not «было обнаружено».
+- Active voice: "я нашёл" / "I found", not «было обнаружено» / "it was discovered".
 
 ## Available MCP Tools
 
