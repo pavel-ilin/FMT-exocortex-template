@@ -2692,6 +2692,14 @@
       "sha256": "10515bdb3cfc793fbf3eb00a269675e00716f9b0daa8a8ac3aae85bc9d8fc06a"
     },
     {
+      "path": "scripts/tests/test_issue_718_sync_canary.sh",
+      "sha256": "79aabff7ed9bf948e16e76e3de86168d62eb4c572fbbc65a3d327ac0ebc0c36c"
+    },
+    {
+      "path": "scripts/tests/test_issue_720_decision_log_sot.sh",
+      "sha256": "b38448f83b4ee3a7cefe3cf40eea41e56153f50134fd91f78c28bc2643318686"
+    },
+    {
       "path": "scripts/tests/test_issue_calendar_api_error_named.sh",
       "sha256": "4b44a9bbcb4eb3247e10bea7c133ce8ea0f866421445f6e539c42dc48617ecd6"
     },

@@ -23,6 +23,10 @@ EXIT_TAINTED=4   # peer-session 2026-08-21-09: grep-fallback manifest parsing ra
                  # a real operational error (network/conflict/runtime) still
                  # takes priority over this code, it never masks one.
 EXIT_CONFLICT=49
+EXIT_CANARY_FAILED=5   # issue #718: --check's registry-sync canary (see run_sync_canary)
+                       # found the WP-Registry unreadable/unparseable for a real WP —
+                       # a silently lost fix in that path would look identical to a
+                       # healthy one without this check.
 EXIT_GENERAL=1
 GITHUB_API_AUTH_FAILURE=90
 GITHUB_API_INVALID_TOKEN=91
@@ -1756,6 +1760,52 @@ assert_self_unmutated() {
     fi
 }
 
+# run_sync_canary — issue #718: a mechanism that fails open (delivers a
+# plausible-looking result instead of a loud error) can silently lose a fix
+# for weeks before anyone notices, e.g. #717. wp-sync-bundle.sh --self-test
+# already exercises the exact code path every WP Gate sync relies on
+# (registry lookup + status-cell resolution); running it here catches a
+# broken/unreadable registry the same day an update runs, not weeks later.
+# No governance repo configured, or wp-sync-bundle.sh missing — SKIP, not
+# FAIL: those are separate, already-diagnosed conditions elsewhere in
+# update.sh, not a canary regression.
+run_sync_canary() {
+    local governance_repo
+    governance_repo=$(effective_governance_repo) || { echo "  ℹ Canary (реестр РП): SKIP (governance repo не определён)"; return 0; }
+
+    # effective_governance_repo() always returns a name (default DS-strategy)
+    # even when that directory doesn't exist yet — a fresh install before the
+    # pilot's first governance repo is set up. wp-sync-bundle.sh hard-exits 1
+    # in that case ("Governance repo с WP-REGISTRY.md не найден"), which
+    # run_sync_canary would otherwise report as a canary FAILURE rather than
+    # the "not configured yet" SKIP it actually is.
+    if [ ! -f "$WORKSPACE_DIR/$governance_repo/docs/WP-REGISTRY.md" ]; then
+        echo "  ℹ Canary (реестр РП): SKIP ($governance_repo/docs/WP-REGISTRY.md ещё не существует)"
+        return 0
+    fi
+
+    local sync_bundle="$WORKSPACE_DIR/$governance_repo/.claude/scripts/wp-sync-bundle.sh"
+    if [ ! -x "$sync_bundle" ]; then
+        sync_bundle="$SCRIPT_DIR/.claude/scripts/wp-sync-bundle.sh"
+    fi
+    if [ ! -x "$sync_bundle" ]; then
+        echo "  ℹ Canary (реестр РП): SKIP (wp-sync-bundle.sh не найден)"
+        return 0
+    fi
+
+    local canary_output canary_status
+    canary_output=$(IWE_WORKSPACE="$WORKSPACE_DIR" IWE_GOVERNANCE_REPO="$governance_repo" \
+        bash "$sync_bundle" --self-test 2>&1)
+    canary_status=$?
+    if [ "$canary_status" -eq 0 ]; then
+        echo "  ✓ Canary (реестр РП): OK"
+        return 0
+    fi
+    echo "  ✗ Canary (реестр РП) FAILED — реестр WP-Registry нечитаем или статус не резолвится:" >&2
+    echo "$canary_output" | sed 's/^/    /' >&2
+    return "$EXIT_CANARY_FAILED"
+}
+
 # exit_clean — the shared exit for every "this run completed with no
 # operational error" path (peer-session 2026-08-21-09, Codex review
 # consensus). Overrides EXIT_OK with EXIT_TAINTED when INTEGRITY_TAINTED is
@@ -2367,7 +2417,17 @@ sync_workspace_claude_md() {
         WS_BASE="$WORKSPACE_DIR/.claude.md.base"
         WS_CURRENT="$WORKSPACE_DIR/CLAUDE.md"
 
-        if [ -f "$WS_BASE" ] && [ -f "$WS_CURRENT" ] && command -v git >/dev/null 2>&1; then
+        # issue #711: a previous run left unresolved <<<<<<< markers in
+        # $WS_CURRENT (pilot hasn't touched the file yet). Running
+        # `git merge-file` again would 3-way-merge a file that already
+        # contains literal marker lines as if they were real content —
+        # confusing nested markers at best. Re-surface the same warning
+        # without attempting a new merge; base stays untouched either way.
+        if [ -f "$WS_CURRENT" ] && grep -q '^<<<<<<<' "$WS_CURRENT" 2>/dev/null; then
+            echo "  ~ $WS_CURRENT (неразрешённый конфликт с прошлого запуска — сначала разрешите маркеры вручную)"
+            CLAUDE_CONFLICT_DETECTED=true
+            CLAUDE_CONFLICT_FILES+=("$WS_CURRENT")
+        elif [ -f "$WS_BASE" ] && [ -f "$WS_CURRENT" ] && command -v git >/dev/null 2>&1; then
             WS_MERGE_TMP="$TMPDIR_UPDATE/ws-claude-merge.md"
             cp "$WS_CURRENT" "$WS_MERGE_TMP"
             if git merge-file -p "$WS_MERGE_TMP" "$WS_BASE" "$WS_NEW" > "$TMPDIR_UPDATE/ws-claude-merged.md" 2>/dev/null; then
@@ -2384,17 +2444,24 @@ sync_workspace_claude_md() {
             else
                 WS_CONFLICTS=$(grep -c '^<<<<<<<' "$TMPDIR_UPDATE/ws-claude-merged.md" 2>/dev/null || true); WS_CONFLICTS=${WS_CONFLICTS:-0}
                 cp "$TMPDIR_UPDATE/ws-claude-merged.md" "$WS_CURRENT"
-                cp "$WS_NEW" "$WS_BASE"
                 CLAUDE_CONFLICTS=$((CLAUDE_CONFLICTS + WS_CONFLICTS))
                 if [ "$WS_CONFLICTS" -gt 0 ]; then
                     # issue #226: don't abort here — a CLAUDE.md conflict is an isolated
                     # artifact, not a reason to skip the rest of the delivery (memory/hooks/
                     # skills propagation, repair-pass, commit). Warn now, fail at the end.
+                    # issue #711: do NOT advance $WS_BASE here (unlike the no-conflict
+                    # branch below) — advancing it made the next run's `diff -q
+                    # "$WORKSPACE_DIR/.claude.md.base" "$WS_NEW"` gate at the top of this
+                    # function succeed even though $WS_CURRENT still had unresolved
+                    # <<<<<<< markers, so update.sh reported "Всё актуально" on a corrupt
+                    # file. Base now advances only once the markers are gone (see the
+                    # pre-check above, which takes over on the next run).
                     echo "  ~ $WS_CURRENT ($WS_CONFLICTS конфликтов — разрешите вручную)"
                     echo "    Конфликты обозначены <<<<<<< / ======= / >>>>>>>"
                     CLAUDE_CONFLICT_DETECTED=true
                     CLAUDE_CONFLICT_FILES+=("$WS_CURRENT")
                 else
+                    cp "$WS_NEW" "$WS_BASE"
                     echo "  ✓ $WS_CURRENT обновлён (3-way merge)"
                 fi
             fi
@@ -3259,6 +3326,9 @@ if $CHECK_ONLY; then
     echo "Режим --check: изменения не применяются."
     echo "Для применения: bash update.sh"
     assert_self_unmutated
+    if ! run_sync_canary; then
+        exit "$EXIT_CANARY_FAILED"
+    fi
     exit_clean
 fi
 
