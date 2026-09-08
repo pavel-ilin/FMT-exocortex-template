@@ -141,16 +141,9 @@ if [ "${IWE_PEER_PLAIN:-0}" != "1" ]; then
     exit 1
   fi
 
-  # WP-484 Ф89: alert-only self-check — доля кириллицы в ответе после
-  # вычитания кода/путей/A2-глосс. Никогда не блокирует вывод, только
-  # предупреждает в stderr — не peer-реплика (IWE_PEER_PLAIN=1) её не видит.
-  _LANG_CHECK="$SCRIPT_DIR/lib/language-check.py"
-  if [ -f "$_LANG_CHECK" ]; then
-    _LANG_RESULT=$(printf '%s' "$RESPONSE" | python3 "$_LANG_CHECK" 2>/dev/null || true)
-    if printf '%s' "$_LANG_RESULT" | grep -q '"alert": true'; then
-      echo "WARNING: peer response may not be in Russian (language-check alert) — $_LANG_RESULT" >&2
-    fi
-  fi
+  # WP-484 Ф89: language-check блок удалён (WP-001): файл lib/language-check.py
+  # никогда не поставлялся (мёртвая ссылка), а проверка «ответ должен быть по-русски»
+  # противоречит двуязычному runtime — peer отвечает на языке задачи (SYNC-CORE § Language).
 fi
 
 # === WP-454: write to agent-sessions journal (best-effort, non-blocking) ===

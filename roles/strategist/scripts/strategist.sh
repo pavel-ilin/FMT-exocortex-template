@@ -58,6 +58,18 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 # IWE_WORKSPACE / IWE_GOVERNANCE_REPO задаются в /etc/iwe/env или ~/.config/aist/env.
 WORKSPACE="${IWE_WORKSPACE:-$HOME/IWE}/${IWE_GOVERNANCE_REPO:-DS-strategy}"
 
+# WP-001: installation language for autonomous outputs (params.yaml, default ru).
+IWE_WS_ROOT="${IWE_WORKSPACE:-$HOME/IWE}"
+INSTALL_LANGUAGE="ru"
+if [ -f "$IWE_WS_ROOT/params.yaml" ]; then
+    _lang_val=$(grep -E '^language:[[:space:]]*' "$IWE_WS_ROOT/params.yaml" 2>/dev/null | head -1 | sed 's/^language:[[:space:]]*//;s/[[:space:]]*#.*//;s/"//g' | tr -d '[:space:]')
+    case "$_lang_val" in
+        en|EN) INSTALL_LANGUAGE="en" ;;
+        ru|RU|"") INSTALL_LANGUAGE="ru" ;;
+        *) INSTALL_LANGUAGE="ru" ;;  # unknown value → safe default
+    esac
+fi
+
 # Guard: IWE_GOVERNANCE_REPO mismatch (Claude peer-review, 2026-05-26)
 EXPECTED_GOV=$(grep 'IWE_GOVERNANCE_REPO=' "$HOME/.iwe-paths" 2>/dev/null | sed 's/.*="//;s/"$//' || echo "DS-strategy")
 if [ "${IWE_GOVERNANCE_REPO:-}" ] && [ "$IWE_GOVERNANCE_REPO" != "$EXPECTED_GOV" ]; then
@@ -213,13 +225,25 @@ months = ['января','февраля','марта','апреля','мая','
 d = datetime.date.today()
 print(f'{d.day} {months[d.month-1]} {d.year}, {days[d.weekday()]}')
 ")
-    prompt="[Системный контекст] Сегодня: ${ru_date_context}. ISO: ${DATE}. День недели №${DAY_OF_WEEK} (1=Пн..7=Вс). Первый Пн месяца: ${IS_FIRST_MONDAY_OF_MONTH} (посчитано командой date, не выводи это значение сам — issue #616). ЯЗЫК: отвечай ТОЛЬКО на русском. Украинский, английский и другие языки запрещены.
+    if [ "$INSTALL_LANGUAGE" = "en" ]; then
+        date_context=$(python3 -c "
+import datetime
+d = datetime.date.today()
+print(d.strftime('%B %d, %Y, %A'))
+")
+        lang_instruction="LANGUAGE: respond in English (installation language from params.yaml). Russian methodology terms in parentheses on first mention, e.g. 'working product (рабочий продукт)'."
+        prompt="[System context] Today: ${date_context}. ISO: ${DATE}. Day of week #${DAY_OF_WEEK} (1=Mon..7=Sun). First Monday of month: ${IS_FIRST_MONDAY_OF_MONTH} (computed by date, do not recalculate yourself — issue #616). ${lang_instruction}
 
 ${prompt}"
+    else
+        prompt="[Системный контекст] Сегодня: ${ru_date_context}. ISO: ${DATE}. День недели №${DAY_OF_WEEK} (1=Пн..7=Вс). Первый Пн месяца: ${IS_FIRST_MONDAY_OF_MONTH} (посчитано командой date, не выводи это значение сам — issue #616). ЯЗЫК: отвечай по-русски (язык установки из params.yaml).
+
+${prompt}"
+    fi
 
     log "Starting scenario: $command_file"
     log "Command file: $command_path"
-    log "Date context: $ru_date_context"
+    log "Date context: ${date_context:-$ru_date_context} (lang=$INSTALL_LANGUAGE)"
 
     cd "$WORKSPACE"
 
@@ -269,10 +293,14 @@ ${prompt}"
     git -C "$WORKSPACE" reset --quiet 2>/dev/null || true
     log "Cleared staging area after Claude session"
 
-    # macOS notification
+    # macOS notification (bilingual: WP-001)
     local summary
     summary=$(tail -5 "$LOG_FILE" | grep -v '^\[' | head -3)
-    notify "Стратег: $command_file" "$summary"
+    if [ "$INSTALL_LANGUAGE" = "en" ]; then
+        notify "Strategist: $command_file" "$summary"
+    else
+        notify "Стратег: $command_file" "$summary"
+    fi
     return $rc
 }
 

@@ -133,7 +133,11 @@ Umbrella-РП с `agent_scope: open-only` (WP-5, WP-7) — читать **тол
 
 ## Language
 
-Respond in Russian unless the user writes in English.
+**Bilingual platform (RU + EN).** Mirror the pilot's language: pilot writes in English → respond in English; pilot writes in Russian → respond in Russian; ambiguous or no dialogue → installation language from `params.yaml → language` (default `ru`).
+
+- Methodology terms stay paired via the WP-415 glossary (`translation/glossary-v0.1.csv`): in EN text, give the Russian term in parentheses on first mention — «working product (рабочий продукт)»; in RU text, the reverse (rule A2).
+- Artifacts (DayPlan, WeekPlan, WP-contexts) are written in the language of the dialogue that created them and record it in frontmatter (`lang: en`); an artifact continues in its own language across dialogues.
+- Autonomous outputs with no dialogue (scheduled Telegram messages, day-open digest, artifact headers created outside dialogue) use the installation language.
 
 ## Response Style — Pilot-Facing
 
@@ -141,7 +145,7 @@ Respond in Russian unless the user writes in English.
 
 **Channel detector:** технический стиль — стенограммы peer-сессий, commit, PR; «на пальцах» — чат с пилотом (если тот сам не пишет `grep`/`git`/пути/SHA) и §1-§4 синтеза report.md.
 
-**Eleven rules (A1-A11), short:** A1 путь файла не подлежащее (только в скобках после русского глагола); A2 английский термин только после русского описания в скобках; A3 первое упоминание колонки/функции — расшифровка одним словом; A4 pre-flight: примет ли пилот решение по этой фразе; A5 ЧТО до КАК; A6 одна стрелка-следствие на предложение; A7 «сделал → эффект», `<details>` — только при наличии нужных пилоту деталей или по его явному запросу; A7.1 журнал (SHA, коммиты, дефекты) — только в файл отчёта, не в чат; A8 журнал процесса по умолчанию не писать; A9 channel detector; A10 английские маркеры статуса (exit/PASS/SHA) → русские слова; A11 активный залог на ошибках и находках.
+**Eleven rules (A1-A11), short:** A1 путь файла не подлежащее (только в скобках после глагола; в EN — after the verb); A2 иноязычный термин только после описания на языке текста, в скобках — в RU-тексте английский после русского описания, в EN-тексте русский после английского («working product (рабочий продукт)», SoT пар — глоссарий WP-415); A3 первое упоминание колонки/функции — расшифровка одним словом; A4 pre-flight: примет ли пилот решение по этой фразе; A5 ЧТО до КАК; A6 одна стрелка-следствие на предложение; A7 «сделал → эффект», `<details>` — только при наличии нужных пилоту деталей или по его явному запросу; A7.1 журнал (SHA, коммиты, дефекты) — только в файл отчёта, не в чат; A8 журнал процесса по умолчанию не писать; A9 channel detector; A10 машинные маркеры статуса (exit/PASS/SHA) → словами языка ответа; A11 активный залог на ошибках и находках.
 
 ## Code Style — Engineering (DP.SC.172)
 
@@ -171,7 +175,7 @@ Respond in Russian unless the user writes in English.
 - **Extensions Gate (БЛОКИРУЮЩЕЕ для Edit/Write; советующее в целом):** пользовательские правила и настройки идут в `extensions/*.md` + `params.yaml`; новый project-local skill допустим в `.claude/skills/<name>/`, только если этот каталог отсутствует в `update-manifest.json` (issue #311). Существующий платформенный skill или `memory/protocol-*.md` напрямую не править; автор (`author_mode: true`) редактирует L1 как SoT и доставляет через `template-sync.sh`. Хук перехватывает `Edit|Write`, но не разбирает произвольные Bash-команды: это guardrail от случайной правки, не tool-independent security boundary.
 - **README.md (FMT-exocortex-template):** изменение структуры — по согласованию с владельцем.
 - **WP Entry Filter (S-47, БЛОКИРУЮЩЕЕ):** новый РП — только при явной связи с R1-R6 месяца или внешнем заказчике; иначе → `inbox/backlog-with-triggers.md`. Исключения: spin-off закрытого РП; прямое поручение пилота.
-- **Именование РП:** существительное-артефакт, только русский (Pack-ID допустим); реестр ≤80 символов → SYNC-CORE; переименование — синхронно REGISTRY+MEMORY.md+WeekPlan+DayPlan+WP-context.
+- **Именование РП:** существительное-артефакт на языке диалога или установки (Pack-ID допустим; русский — для русскоязычных диалогов); реестр ≤80 символов → SYNC-CORE; переименование — синхронно REGISTRY+MEMORY.md+WeekPlan+DayPlan+WP-context.
 - **Память (S-35):** новые `memory/*.md` — обязательный frontmatter; шаблон и горизонты → `memory/memory-lifecycle-spec.md` (единственный источник).
 - **Security Audit Cadence (WP-212, S-36):** per-ArchGate (§Б B7.1 + STRIDE) · Week Close (`security-posture.md §3`) · Daily (tsekh-1) · Month Close (VR.R.002).
 - **WeekPlan/WeekReport split (WP-297):** WeekPlan = только интенты, WeekReport = только факты; при создании WeekPlan итоги уезжают в WeekReport.

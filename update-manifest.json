@@ -2744,6 +2744,10 @@
       "sha256": "fffd6c65017455af0cee8af1d05595d773cdc8776738286aa488b0086a972192"
     },
     {
+      "path": "scripts/tests/test_wp001_language_parameter.py",
+      "sha256": "5aa75051343ece07646506f8ea537ef2441fa2a8649373ae4cfcabe49f7fa996"
+    },
+    {
       "path": "scripts/tests/validate_manifest_coverage.sh",
       "sha256": "8ca218f39bc6357c0ba4399a7de89c5465b2368f8820ba8c0102d00c67ec6007"
     },

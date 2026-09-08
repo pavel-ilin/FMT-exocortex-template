@@ -33,10 +33,13 @@ import sys, json
 import mlx_whisper
 
 file_path, model_path = sys.argv[1], sys.argv[2]
+# language=None → auto-detect (bilingual platform, WP-001); pass a code
+# (e.g. "ru"/"en") explicitly via IWE_TRANSCRIBE_LANG to skip detection.
+lang = None if "${IWE_TRANSCRIBE_LANG:-auto}" == "auto" else "${IWE_TRANSCRIBE_LANG}"
 result = mlx_whisper.transcribe(
     file_path,
     path_or_hf_repo=model_path,
-    language="ru",
+    language=lang,
     word_timestamps=True,
 )
 print(result["text"])

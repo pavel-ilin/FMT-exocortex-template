@@ -45,7 +45,7 @@ relation from keywords. Does NOT create WP or call executor.
 {
   "task_type": "string",
   "class": "trivial | closed-loop | open-loop | problem-framing",
-  "artifact": "string (одна строка на русском — существительное-результат)",
+  "artifact": "string (одна строка — существительное-результат на языке диалога; см. Правила `artifact`)",
   "budget_estimate": "~Xh | ?",
   "confidence": "high | low",
   "routing_tag": "string",
@@ -108,8 +108,8 @@ PY3="$(bash "$S/lib/find-python3.sh")" && "$PY3" "$S/artifactor.py" "$ARGUMENTS"
 
 При сомнении — выбирать более широкий класс (open-loop, не closed-loop).
 
-**Правила `artifact`:** одна строка на русском, существительное-результат.  
-Примеры: «Список тем для трёх постов», «Диагностический отчёт латентности», «ТЗ сценариев».
+**Правила `artifact`:** одна строка на языке диалога (SYNC-CORE § Language), существительное-результат.  
+Примеры (RU): «Список тем для трёх постов», «Диагностический отчёт латентности», «ТЗ сценариев». Примеры (EN): "Topic list for three posts", "Latency diagnostic report", "Scenario spec".
 
 **Правила `budget_estimate`:**
 - `trivial` → `~0.5h`

@@ -147,6 +147,24 @@ Refs: WP-NNN
 
 ## [Unreleased]
 
+### Added (WP-001: bilingual runtime, DRR-001)
+- `params.yaml.example`: параметр `language: ru|en` (default `ru`) — управляет автономными выходами (сценарии Стратега, day-open дайджест, заголовки артефактов вне диалога); диалог зеркалит язык пилота независимо от параметра. (`Changelog-Tag: behavior`)
+- SYNC-CORE § Language переписан: зеркало диалога, артефакты на языке диалога создания с `lang:` в frontmatter, EN-текст сопровождает русский термин в скобках (глоссарий WP-415 — SoT пар).
+- `day-open-scaffold.sh`: `lang:` + язык-независимый `agent:` в frontmatter DayPlan, заголовок на языке установки.
+
+### Changed (WP-001)
+- `formatting.md`, стиль S0 (base + s0-core), feedback-правила A2/A10: иноязычный термин после описания на языке текста (RU←EN и EN←RU симметрично).
+- `strategist.sh`: чтение `language:` из params.yaml, EN-ветка промпта и уведомлений; жёсткий запрет «ТОЛЬКО на русском» удалён.
+- Скиллы (artifactor, day-open, week-close, discovery-session, diagnose, iwe-platform-redteam, transcribe): язык вывода — язык диалога/установки вместо жёсткого русского.
+- Постусловия-грепы двуязычные (паттерн issue #234): validate-staged-artifacts (Итоги|Results|Summary), day-close-details 9a, week-close WP-GATE check.
+- `iwe-transcribe.sh`: авто-детект языка аудио (`IWE_TRANSCRIBE_LANG` — явное переопределение) вместо жёсткого `language="ru"`.
+
+### Removed (WP-001, P3)
+- Мёртвые вызовы `lib/language-check.py` из codex/hermes-peer-адаптеров (файл никогда не поставлялся; проверка «ответ по-русски» противоречит двуязычному runtime).
+
+### Deferred (WP-001 → WP-415)
+- Перевод тел шаблонов DayPlan/WeekPlan (секции «Срочное», «Саморазвитие»…) и онбординг-доков; глоссарий пар терминов `translation/glossary-v0.1.csv` (категория I, конвейер перевода).
+
 ## [0.39.2] — 2026-09-04
 
 ### Added

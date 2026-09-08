@@ -223,10 +223,11 @@ TODAY=$(date +%Y-%m-%d)
 # токена и постусловие молча падало в FAIL независимо от реального содержимого
 # файла. Прямая проверка через переменную в кавычках не расщепляет путь.
 F="$HOME/IWE/${IWE_GOVERNANCE_REPO:-DS-strategy}/archive/day-plans/DayPlan ${TODAY}.md"
-if grep -q "Итоги дня" "$F" 2>/dev/null && grep -q "${TODAY}" "$F" 2>/dev/null; then
+# language-tolerant (WP-001): RU «Итоги дня» / EN "Day summary" — issue #234
+if grep -qE "Итоги дня|Day summary" "$F" 2>/dev/null && grep -q "${TODAY}" "$F" 2>/dev/null; then
   echo "9a OK"
 else
-  echo "9a FAIL: итоги не найдены в DayPlan ${TODAY}"
+  echo "9a FAIL: итоги не найдены в DayPlan ${TODAY} / day summary not found"
 fi
 ```
 

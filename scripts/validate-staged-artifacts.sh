@@ -146,7 +146,8 @@ validate_weekplan() { # <staged-path> <tmpfile>
 
 validate_weekreport() { # <staged-path> <tmpfile>
     local rel="$1" f="$2"
-    grep -q "Итоги" "$f" || err "WeekReport $rel: нет секции «Итоги»"
+    # language-tolerant (WP-001): RU «Итоги» / EN "Results" / "Summary"
+    grep -qE "Итоги|Results|Summary" "$f" || err "WeekReport $rel: нет секции «Итоги» / missing 'Results' section"
 }
 
 # Обход ВСЕХ staged-артефактов каждого типа (а не одного sort|tail -1):

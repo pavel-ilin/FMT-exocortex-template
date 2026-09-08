@@ -95,6 +95,26 @@ DOW_RU="${DOW_NAMES[$DOW_NUM]}"
 MONTH_RU="${MONTH_NAMES[$MONTH_NUM]}"
 YDAY_MONTH_RU="${MONTH_NAMES[$YDAY_MNUM]}"
 
+# WP-001 bilingual: installation language (params.yaml, default ru).
+INSTALL_LANGUAGE="ru"
+if [ -f "$PARAMS_FILE" ]; then
+    _lang_val=$(grep -E '^language:[[:space:]]*' "$PARAMS_FILE" 2>/dev/null | head -1 | sed 's/^language:[[:space:]]*//;s/[[:space:]]*#.*//;s/"//g' | tr -d '[:space:]')
+    case "$_lang_val" in
+        en|EN) INSTALL_LANGUAGE="en" ;;
+    esac
+fi
+DOW_EN=("" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday")
+MONTH_EN=("" "January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December")
+if [ "$INSTALL_LANGUAGE" = "en" ]; then
+    DOW_LABEL="${DOW_EN[$DOW_NUM]}"
+    MONTH_LABEL="${MONTH_EN[$MONTH_NUM]}"   # "September 8" order used in header
+    DAY_HEADER="$MONTH_LABEL $DAY_NUM, $YEAR ($DOW_LABEL)"
+    AGENT_LABEL="Strategist"
+else
+    DAY_HEADER="$DAY_NUM $MONTH_RU $YEAR ($DOW_RU)"
+    AGENT_LABEL="Стратег"
+fi
+
 # --- YAML reader: parse config once, then do pure-bash lookup per call ---
 # _YAML_KEYS / _YAML_VALS are parallel arrays built by a single python3 invocation.
 #
@@ -1326,12 +1346,13 @@ cat <<EOF
 type: daily-plan
 date: $DATE
 week: W$WEEK_NUM
+lang: $INSTALL_LANGUAGE
 status: active
-agent: Стратег
+agent: $AGENT_LABEL
 generated_by: day-open-scaffold.sh (WP-264 Ф2)
 ---
 
-# Day Plan: $DAY_NUM $MONTH_RU $YEAR ($DOW_RU)
+# Day Plan: $DAY_HEADER
 
 <!-- СРОЧНОЕ (ТВС=С): вывести ТОЛЬКО при 🔴 (упавший smoke / сломанная интеграция / EMERGENCY в priorities.yaml / заблокированный конвейер). В зелёный день — «нет срочного». -->
 <details>
