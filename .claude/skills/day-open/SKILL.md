@@ -43,7 +43,7 @@ Day Open = протокол. Блокирующее требование — н�
 <!-- Детали (адресное чтение, fallback): day-open-details.md § Шаг 1 -->
 
 ### 1b. GitHub Issues
-`day-open-scaffold.sh` (`render_repo_issues`) делает свип. Critical FMT issues: `bash $IWE_SCRIPTS/fmt-critical-alert.sh --no-telegram`.
+`day-open-scaffold.sh` (`render_repo_issues`) делает свип — запускать каноническую копию: `bash $IWE_SCRIPTS/day-open-scaffold.sh` (не корневую `scripts/`-копию workspace: промотированная копия без `lib/` рядом падает FATAL, issue #455). Critical FMT issues: `bash $IWE_SCRIPTS/fmt-critical-alert.sh --no-telegram`.
 <!-- Детали (фильтры, кэш): day-open-details.md § Шаг 1b -->
 
 ### 1c. Inbox Triage

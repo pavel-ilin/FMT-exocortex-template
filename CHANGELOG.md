@@ -145,25 +145,43 @@ Refs: WP-NNN
 
 
 
-## [Unreleased]
 
-### Added (WP-001: bilingual runtime, DRR-001)
-- `params.yaml.example`: параметр `language: ru|en` (default `ru`) — управляет автономными выходами (сценарии Стратега, day-open дайджест, заголовки артефактов вне диалога); диалог зеркалит язык пилота независимо от параметра. (`Changelog-Tag: behavior`)
-- SYNC-CORE § Language переписан: зеркало диалога, артефакты на языке диалога создания с `lang:` в frontmatter, EN-текст сопровождает русский термин в скобках (глоссарий WP-415 — SoT пар).
-- `day-open-scaffold.sh`: `lang:` + язык-независимый `agent:` в frontmatter DayPlan, заголовок на языке установки.
+## [Unreleased] — обновлено 2026-09-09
 
-### Changed (WP-001)
-- `formatting.md`, стиль S0 (base + s0-core), feedback-правила A2/A10: иноязычный термин после описания на языке текста (RU←EN и EN←RU симметрично).
-- `strategist.sh`: чтение `language:` из params.yaml, EN-ветка промпта и уведомлений; жёсткий запрет «ТОЛЬКО на русском» удалён.
-- Скиллы (artifactor, day-open, week-close, discovery-session, diagnose, iwe-platform-redteam, transcribe): язык вывода — язык диалога/установки вместо жёсткого русского.
-- Постусловия-грепы двуязычные (паттерн issue #234): validate-staged-artifacts (Итоги|Results|Summary), day-close-details 9a, week-close WP-GATE check.
-- `iwe-transcribe.sh`: авто-детект языка аудио (`IWE_TRANSCRIBE_LANG` — явное переопределение) вместо жёсткого `language="ru"`.
+### Added
 
-### Removed (WP-001, P3)
-- Мёртвые вызовы `lib/language-check.py` из codex/hermes-peer-адаптеров (файл никогда не поставлялся; проверка «ответ по-русски» противоречит двуязычному runtime).
+- [behavior] `94f87f1` feat(lang): bilingual runtime — language parameter (WP-001, DRR-001)
+- `2526f3c` feat(wp474): Ф8.1+Ф8.3 — порядковая шкала 0-5 и статус DPFPackageAdequacyStatus для verify-pack-adequacy
+- `35c3dc5` feat(permissions): универсальное разрешение служебных скриптов сессионного учёта (РП-544 Ф8)
+- `7019e5a` feat(onboarding): default VS Code Claude Code extension to Auto mode on setup (#670)
 
-### Deferred (WP-001 → WP-415)
-- Перевод тел шаблонов DayPlan/WeekPlan (секции «Срочное», «Саморазвитие»…) и онбординг-доков; глоссарий пар терминов `translation/glossary-v0.1.csv` (категория I, конвейер перевода).
+### Changed
+
+- `7593a90` chore: publish parallel work — sync canary (#718), Decision Log SoT (#720), CHANGELOG restore
+- `15d4928` docs(lang): onboarding + browser-ci — dialogue-mirroring instead of russian-only (WP-001 Ф4)
+- `040f810` docs(wp529): хвост масштабов ОРЗ — ещё три носителя после холодной верификации (#699)
+- `e33bec0` docs(wp529): масштабы ОРЗ в документации шаблона — четыре вместо двух (#698)
+- `582485c` docs(wp529): Ф23 — синхронизация масштабов ОРЗ и релизной документации (#615)
+- `b1f4530` Merge pull request #697 from TserenTserenov/wp5-f55-extractor-feeders-in-update
+- `2fe05c0` Merge pull request #683 from TserenTserenov/wp474-f81-f83-adequacy-scale
+- `6050c84` chore(manifest): перегенерация sha256 после Ф8.1+Ф8.3
+- `da73c66` Merge pull request #676 from TserenTserenov/wp544-universal-session-scripts-allow
+- `456004f` chore(manifest): перегенерация sha256 settings.json после allow-правил
+- `0ac53a2` Merge pull request #675 from TserenTserenov/tmp-day-open-fix
+- `58004da` Merge pull request #674 from TserenTserenov/release/v0.39.2
+- `7e85899` chore(release): weekly auto-bump to v0.39.2
+- `7c6c832` wp560 Ф11: browser_safe frontmatter classification for all skills (#672)
+
+### Fixed
+
+- [behavior] `35e6361` fix(wp5): обновление ставит только расписание Экстрактора, не трогает глобальный git
+- [behavior] `c69484d` fix(wp5): Экстрактор ставится и при обновлении, не только при первой установке (Ф55)
+- `29e8337` fix(issue-funnel): close 4 template bugs from 2-day issue triage (#677-680) (#684)
+- `fcd2f44` fix(day-open): клонировать/синхронизировать PD-dashboard перед тайлом
+- `d625d1e` fix(wp561): port session_closed_direct ledger write for peer-session bypass (#673)
+- `11cf3f7` fix: FMT issue-funnel batch (#665, #661, #660, #658-i, #657) (#668)
+- `b35e606` fix(day-open): портировать фикс «Портфель в работе» (WP-484 Ф148) (#666)
+
 
 ## [0.39.2] — 2026-09-04
 
